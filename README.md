@@ -1,6 +1,6 @@
 # agy_fedora_unofficial
 
-Unofficial Fedora RPM packaging and COPR automation for the **Antigravity** Electron desktop application (`x86_64`, not the IDE).
+Unofficial Fedora RPM packaging and COPR automation for the **Antigravity** Electron desktop application (`x86_64`, not the IDE). Comes from the Tarball for Linux available here: https://antigravity.google/download#antigravity-2
 
 COPR repo: <https://copr.fedorainfracloud.org/coprs/karanshukla/agy_fedora_unofficial/>
 
