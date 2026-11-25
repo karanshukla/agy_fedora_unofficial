@@ -11,6 +11,8 @@ sudo dnf copr enable karanshukla/agy_fedora_unofficial
 sudo dnf install antigravity
 ```
 
+Alternatively, download the COPR-signed `.x86_64.rpm` directly from [GitHub Releases](https://github.com/karanshukla/agy_fedora_unofficial/releases) and install it with `sudo dnf install ./antigravity-*.x86_64.rpm`.
+
 To pass extra Electron/Chromium flags (in addition to the default `--ozone-platform-hint=auto`), add one flag per line to `~/.config/antigravity-flags.conf`.
 
 ## How it updates
