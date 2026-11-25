@@ -42,6 +42,5 @@ sudo dnf install ./rpmbuild/RPMS/x86_64/antigravity-*.x86_64.rpm
 
 - **Packaging changed (same upstream version):** bump `RELEASE` (`1` -> `2`) and push to `main`.
 - **COPR token:** contact the maintainer Karan Shukla
-  ```
 
 See [SECURITY.md](SECURITY.md) for what is checked and what is trusted.
