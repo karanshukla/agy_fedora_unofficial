@@ -41,9 +41,7 @@ sudo dnf install ./rpmbuild/RPMS/x86_64/antigravity-*.x86_64.rpm
 ## Maintenance
 
 - **Packaging changed (same upstream version):** bump `RELEASE` (`1` -> `2`) and push to `main`.
-- **COPR token:** set the `COPR_CONFIG` secret in the `copr` GitHub environment (contents of `~/.config/copr` from <https://copr.fedorainfracloud.org/api/>):
-  ```bash
-  gh secret set COPR_CONFIG --env copr -R karanshukla/agy_fedora_unofficial
+- **COPR token:** contact the maintainer Karan Shukla
   ```
 
 See [SECURITY.md](SECURITY.md) for what is checked and what is trusted.
