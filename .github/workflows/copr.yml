@@ -1,0 +1,97 @@
+name: COPR
+
+# Every 6 hours: if upstream Antigravity has no build in COPR for VERSION-RELEASE yet, build one.
+# A run fails, and GitHub emails, if the manifest/download fails, the version inside app.asar does
+# not match the manifest, or the COPR build fails.
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      retry:
+        description: "Build again even if the last COPR build of this version failed"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths:
+      - "antigravity.spec"
+      - "antigravity.desktop"
+      - "antigravity.sh"
+      - "RELEASE"
+      - "latest-version.sh"
+      - "make-srpm.sh"
+      - ".github/workflows/copr.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: copr
+  cancel-in-progress: false
+
+env:
+  PROJECT: agy_fedora_unofficial
+  OWNER: karanshukla
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # COPR_CONFIG lives in this environment, which only main can deploy to.
+    environment: copr
+    timeout-minutes: 120
+    container: registry.fedoraproject.org/fedora:45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Tools
+        run: dnf -y -q install --setopt=install_weak_deps=False copr-cli rpm-build curl jq python3 tar gzip
+
+      - name: What needs building
+        id: want
+        env:
+          RETRY: ${{ inputs.retry }}
+        run: |
+          set -euo pipefail
+          IFS=$'\t' read -r VER URL < <(./latest-version.sh --url)
+          REL=$(tr -d '[:space:]' < RELEASE)
+          WANT="$VER-$REL"
+          echo "Upstream Antigravity: $VER, want antigravity-$WANT in $OWNER/$PROJECT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          builds=$(curl -fsS "https://copr.fedorainfracloud.org/api_3/build/list?ownername=$OWNER&projectname=$PROJECT&packagename=antigravity&limit=50" \
+            || echo '{"items":[]}')
+          STATE=$(jq -r --arg v "$WANT" '
+            def norm: sub("^[0-9]+:"; "") | gsub("\\.fc[0-9]+"; "");
+            [.items[] | select((.source_package.version // "" | norm) == ($v | norm))] | first | .state // "none"' <<<"$builds")
+          echo "newest COPR build of antigravity-$WANT: $STATE"
+          case "$STATE" in
+            succeeded|running|pending|starting|importing|waiting|forked) build=no ;;
+            failed|canceled)
+              if [ "$RETRY" = true ]; then build=yes; else
+                echo "::error::the last COPR build of antigravity-$WANT $STATE; fix it and bump RELEASE, or run this workflow with retry"
+                exit 1
+              fi ;;
+            *) build=yes ;;
+          esac
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+
+      - name: Source RPM
+        if: steps.want.outputs.build == 'yes'
+        env:
+          TAR_URL: ${{ steps.want.outputs.url }}
+        run: ./make-srpm.sh out "$TAR_URL"
+
+      - name: COPR build
+        if: steps.want.outputs.build == 'yes'
+        env:
+          COPR_CONFIG: ${{ secrets.COPR_CONFIG }}
+        run: |
+          set -euo pipefail
+          test -n "$COPR_CONFIG" || { echo "::error::COPR_CONFIG is not set in the copr environment"; exit 1; }
+          umask 077
+          mkdir -p ~/.config
+          printf '%s\n' "$COPR_CONFIG" > ~/.config/copr
+          copr-cli build "$OWNER/$PROJECT" out/*.src.rpm

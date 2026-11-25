@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Antigravity
+Comment=Antigravity - Agentic Desktop Application
+GenericName=Agentic Desktop Application
+Exec=/usr/bin/antigravity %U
+Icon=antigravity
+Type=Application
+StartupNotify=true
+StartupWMClass=Antigravity
+Categories=Development;Utility;
+MimeType=x-scheme-handler/antigravity;
