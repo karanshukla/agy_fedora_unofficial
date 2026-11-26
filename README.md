@@ -44,3 +44,7 @@ sudo dnf install ./rpmbuild/RPMS/x86_64/antigravity-*.x86_64.rpm
 - **COPR token:** contact the maintainer Karan Shukla
 
 See [SECURITY.md](SECURITY.md) for what is checked and what is trusted.
+
+## License
+
+MIT. Antigravity is proprietary Google code. This wrapper and automation is MIT licensed. 
